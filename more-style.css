@@ -1,0 +1,91 @@
+body {
+  font-family: Helvetica Neue,Arial,Helvetica,sans-serif;
+  background:
+}
+
+body .card-div {
+  border: 1px solid #e2e4e6;
+  border-radius: 3px;
+  padding: 6px 6px 2px 8px;
+  float: left;
+  overflow: hidden;
+}
+
+.card-title {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.card-div p {
+  font-size: 14px;
+}
+
+ul.comments li {
+  font-style: italic;
+}
+
+.label {
+  border-radius: 3px;
+  color: white;
+  margin-right: 3px;
+  padding: 3px 6px;
+  background-color: #cccccc;
+  white-space: nowrap;
+}
+
+.label.label-blue {
+  background-color: #0079bf;
+}
+
+.label.label-purple {
+  background-color: #c377e0;
+}
+
+.label.label-lime {
+  background-color: #51e898;
+}
+
+.label.label-red {
+  background-color: #eb5a46;
+}
+
+.label.label-pink {
+  background-color: #ff80ce;
+}
+
+.label.label-black {
+  background-color: #000000;
+}
+
+.label.label-green {
+  background-color: #61bd4f;
+}
+
+.label.label-orange {
+  background-color: #ffab4a;
+}
+
+.label.label-sky {
+  background-color: #00c2e0;
+}
+
+.label.label-yellow {
+  background-color: #f2d600;
+}
+
+@media print {
+	body {
+    -webkit-print-color-adjust:exact;
+	}
+
+	body .card-div {
+    width: 80mm;
+    height: 80mm;
+  }
+
+	body div.card-wrapper {
+    page-break-after: always;
+    overflow: hidden;
+	}
+}
+

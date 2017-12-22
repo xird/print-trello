@@ -14,7 +14,7 @@ function dpyTrello()
 	var dt = dtObj.toLocaleString();
 
 	if (prefVal.showBoardTitle)
-	htm.push('<h2>', DB.raw.name, 
+	htm.push('<h2>', DB.raw.name,
 		'<span class=asof> - last activity - ', dt, '</span>',
 		'</h2>');
 
@@ -43,10 +43,10 @@ function dpyList(i,mode,showPrintHref)
 	if (i>0) pb = " style='page-break-before:always' ";
 
 	var x = prefVal.showListTitle;
-	if (x){ 
+	if (x){
 
 		var bn = DB.raw.name;
-		if (!prefVal.prefaceListNameWithBoard) bn = ''; 
+		if (!prefVal.prefaceListNameWithBoard) bn = '';
 
 		var ar = '';
 
@@ -63,7 +63,7 @@ function dpyList(i,mode,showPrintHref)
 		' : ',
 		'<a href=javascript:JS.printList(',i,',1)>print just this list expanded</a>',
 		'</span>'
-		); 
+		);
 
 		htm.push('<hr>', '</h3>');
 	}
@@ -71,6 +71,13 @@ function dpyList(i,mode,showPrintHref)
 	else if (pb) htm.push('<div',pb,'></div>');
 
 	var carr = lobj.cardArr;
+
+	// Count cards so we can insert a page break after every 6 cards. The print
+	// CSS defines card size to 80x80mm, which means 6 cards fit on an A4. The
+	// card divs are wrapped in an extra div at 6 cards per div, and that
+	// wrapper div has a page-break-after.
+	var cardCount = 0;
+	htm.push('<div class="card-wrapper">');
 	for (var j=0; j<carr.length; j++){
 
 		var cobj = carr[j];
@@ -85,10 +92,17 @@ function dpyList(i,mode,showPrintHref)
 		if (x) cardId.push(j+1, ' ');
 		else cardId = [''];
 		cardId = cardId.join('');
+
+		if (cardCount && cardCount % 6 == 0) {
+		  htm.push('</div><div class="card-wrapper">');
+		}
+		cardCount++;
+
 		htm.push('<div class="card-div ', prefVal.checklistMode, '">');
 		htm.push(dpyCard(cobj,cardId,mode));
 		htm.push('</div>');
 	}
+	htm.push('</div>');
 	return htm.join('');
 }
 
@@ -103,11 +117,11 @@ function dpyCard(cobj,cardId,mode)
 
 	if (cobj.name == prefCardTitle) return;
 
-	cobj.xrefArr = []; 
+	cobj.xrefArr = [];
 
 	var htm = [];
 	var x = prefVal.showCardTitle;
-	if (x) { 
+	if (x) {
 	    if (cobj.closed) htm.push('<span class=hilite>&nbsp;Archived-Card: </span>');
             htm.push('',
 		cardId,' <span class=card-title>',cobj.name,'</span>');
@@ -128,12 +142,12 @@ function dpyCard(cobj,cardId,mode)
 		var kobj = cobj.labels[k];
 		htm.push(' ');
 		if (x == 'show-color-block'){
-			htm.push('<span style="background:',kobj.color,'">&nbsp;&nbsp;&nbsp;</span>');
+			htm.push('<span class="label-color-block-' , kobj.color , '">&nbsp;&nbsp;&nbsp;</span>');
 		}
 		else if (x == 'colored-text'){
-			htm.push(' <i style="color:', kobj.color,'">', kobj.name, '</i>');
+			htm.push(' <span class="label-colored-text-' , kobj.color , '">', kobj.name, '</i>');
 		}
-		else htm.push('<span style="background:',kobj.color,'">',kobj.name,'</span>');
+		else htm.push('<span class="label label-' , kobj.color , '">',kobj.name,'</span>');
 	   }
 	}
 
@@ -153,15 +167,15 @@ function dpyCard(cobj,cardId,mode)
 		var dd = cobj.due.replace(/T.*$/,'');
 		htm.push(' due: ',dd);
 	}
-		
+
 
 	// -- show desc
 	var x = prefVal.showCardDesc;
 	if (x) htm.push(do_sub(cobj.desc));
 
 	// -- show any checklists
-	var x = prefVal.showChecklists; 
-	if (x && cobj.cklistArr.length > 0){ 
+	var x = prefVal.showChecklists;
+	if (x && cobj.cklistArr.length > 0){
 	  var marr = cobj.cklistArr.reverse();
           for (var k=0; k<marr.length; k++){
 
@@ -172,17 +186,16 @@ function dpyCard(cobj,cardId,mode)
 
 
 	// -- show any comments
-	var x = prefVal.showComments; 
+	var x = prefVal.showComments;
 	if (x && cobj.commArr.length > 0){
-	  htm.push('<ul style="list-style-type: lower-alpha">');
+	  htm.push('<ul class="comments">');
 
-	  var marr = cobj.commArr.reverse();
+	  //var marr = cobj.commArr.reverse();
+	  var marr = cobj.commArr;
 	  for (var k=0; k<marr.length; k++){
-
-		//console.log('comment.', k, marr[k]);
-		var buf = marr[k].data.text + 
-		     dpyWhoName(marr[k].memberCreator.fullName);
-		htm.push('<li><i>', do_sub(buf), '</i>'); 
+      var buf = dpyWhoName(marr[k].memberCreator.fullName) + ": " + marr[k].data.text;
+      //htm.push('<li>', do_sub(buf));
+      htm.push('<li>', buf);
 	  }
 	  htm.push('</ul>');
 	}
@@ -190,7 +203,7 @@ function dpyCard(cobj,cardId,mode)
 	var buf = htm.join('');
 	cardHtm[cobj.idShort] = buf;
 
-	
+
 	if (mode == 1){
 		var arr = cobj.xrefArr;
 		var done = [];
@@ -222,9 +235,9 @@ function dpyChecklist(clobj)
 	var htm = [];
 	htm.push('<p class=checklist>',clobj.name);
 
-	var mode = prefVal.showChecklistItems;  
-	// - none 
-	// - all 
+	var mode = prefVal.showChecklistItems;
+	// - none
+	// - all
 	// - unchecked-only -- good for todo lists
 	// - checked-only -- good for grocery lists
 
@@ -235,7 +248,7 @@ function dpyChecklist(clobj)
 		var obj = arr[i];
 
 		var ckmk = '[x]';
-		if (obj.state == 'incomplete'){ 
+		if (obj.state == 'incomplete'){
 			if (mode == 'checked-only') continue;
 			ckmk = '[&nbsp;]'
 		}
@@ -307,7 +320,7 @@ function closeXrefDiv(id)
 	var el = document.getElementById('xrefDiv' + id);
 	if (el) el.innerHTML = '';
 }
-	
+
 
 function printList(i,mode)
 {
